@@ -497,7 +497,7 @@ namespace XML_Editor_WuffPad
                     textHasChanged = true;
                     listItemsView.ItemsSource = currentStringsList;
                     listItemsView.SelectedIndex = loadedFile.Strings.Count - 1;
-                    listItemsView_SelectionChanged(null, null);
+                    listItemsView.ScrollIntoView(currentStringsList[currentStringsList.Count - 1]);
                 }
                 else
                 {
@@ -529,6 +529,7 @@ namespace XML_Editor_WuffPad
                 showValues(currentString);
                 showValue(currentValue);
                 listValuesView.SelectedIndex = currentValuesList.Count - 1;
+                listValuesView.ScrollIntoView(currentValuesList[currentValuesList.Count - 1]);
             }
         }
         #endregion
