@@ -79,6 +79,7 @@ namespace XML_Editor_WuffPad
             {
                 dict.Add(key, value);
             }
+            File.WriteAllText(settingsDbFilePath, JsonConvert.SerializeObject(dict));
         }
 
         private bool checkSetting(string key)
