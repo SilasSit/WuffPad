@@ -74,6 +74,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CommentWarningDialog.xaml.cs">
+      <DependentUpon>CommentWarningDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NewStringDialog.xaml.cs">
       <DependentUpon>NewStringDialog.xaml</DependentUpon>
     </Compile>
@@ -84,6 +87,10 @@
     <Compile Include="XMLClasses\XmlStrings.cs" />
     <Compile Include="XMLClasses\XmlLanguage.cs" />
     <Compile Include="XMLClasses\XmlString.cs" />
+    <Page Include="CommentWarningDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LanguagePropertyDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

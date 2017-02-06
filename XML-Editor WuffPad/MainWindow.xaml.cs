@@ -33,6 +33,7 @@ namespace XML_Editor_WuffPad
         private readonly string fileScratchPath = Environment.CurrentDirectory + "\\language.xml";
         private readonly string dictFilePath = Environment.CurrentDirectory + "\\descriptions.dict";
         private readonly string defaultKeysFilePath = Environment.CurrentDirectory + "\\defaultKeys.list";
+        private readonly string settingsDbFilePath = Environment.CurrentDirectory + "\\settings.db";
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
@@ -58,6 +59,7 @@ namespace XML_Editor_WuffPad
         public MainWindow()
         {
             InitializeComponent();
+            checkSettingsDb();
             getDictAndDefaultKeys();
             listItemsView.ItemsSource = currentStringsList;
             listValuesView.ItemsSource = currentValuesList;
@@ -65,6 +67,41 @@ namespace XML_Editor_WuffPad
         }
 
         #region Functionable Methods
+        private void setSetting(string key, bool value)
+        {
+            Dictionary<string, bool> dict = JsonConvert.DeserializeObject<Dictionary<string, bool>>(
+                File.ReadAllText(settingsDbFilePath));
+            if (dict.ContainsKey(key))
+            {
+                dict[key] = value;
+            }
+            else
+            {
+                dict.Add(key, value);
+            }
+        }
+
+        private bool checkSetting(string key)
+        {
+            string settingsString = File.ReadAllText(settingsDbFilePath);
+            Dictionary<string, bool> settingsDic = 
+                JsonConvert.DeserializeObject<Dictionary<string, bool>>(settingsString);
+            if (settingsDic.ContainsKey(key))
+            {
+                return settingsDic[key];
+            }
+            return false;
+        }
+
+        private void checkSettingsDb()
+        {
+            if (!File.Exists(settingsDbFilePath))
+            {
+                File.WriteAllText(settingsDbFilePath, 
+                    JsonConvert.SerializeObject(new Dictionary<string, bool>()));
+            }
+        }
+
         private string getDefaultMissingKey()
         {
             foreach (string s in defaultKeysList)
@@ -443,6 +480,14 @@ namespace XML_Editor_WuffPad
         {
             if (e.Command == ApplicationCommands.Open)
             {
+                if (!checkSetting("commentWarningDisable"))
+                {
+                    CommentWarningDialog cwd = new CommentWarningDialog();
+                    if (cwd.ShowDialog() == true)
+                    {
+                        setSetting("commentWarningDisable", cwd.DoNotShowAgain);
+                    }
+                }
                 bool closed = true;
                 if (fileIsOpen)
                 {

@@ -71,7 +71,7 @@ namespace XML_Editor_WuffPad
         private void buttonCancel_Click(object sender, RoutedEventArgs e)
         {
             if (canCancel) DialogResult = false;
-            else MessageBox.Show("You need to enter a complete set of values to proceed!");
+            else MessageBox.Show("You can't cancel now!");
         }
 
         private void buttonOK_Click(object sender, RoutedEventArgs e)
@@ -96,6 +96,16 @@ namespace XML_Editor_WuffPad
             textBoxName.Text = __name;
             textBoxOwner.Text = __owner;
             textBoxVariant.Text = __variant;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (canCancel) DialogResult = false;
+            else
+            {
+                MessageBox.Show("You can't cancel now!");
+                e.Cancel = true;
+            }
         }
     }
 }

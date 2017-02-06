@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:XML_Editor_WuffPad"
         mc:Ignorable="d"
         Title="Language Properties" Height="200" Width="400" ResizeMode="NoResize"
-        ContentRendered="Window_ContentRendered">
+        ContentRendered="Window_ContentRendered"
+        Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
