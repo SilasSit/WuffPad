@@ -1,0 +1,96 @@
+﻿<Window x:Name="wuffPadWindow" x:Class="XML_Editor_WuffPad.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XML_Editor_WuffPad"
+        xmlns:comm="clr-namespace:XML_Editor_WuffPad.Commands"
+        mc:Ignorable="d"
+        Title="WuffPad" Height="700" Width="1050" Icon="Android_wuff.ico"
+        Closing="wuffPadWindow_Closing" Top="20" Left="20">
+    <Window.InputBindings>
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="ApplicationCommands.Save"/>
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Save"
+                        Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Open"
+                        Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="ApplicationCommands.New"
+                        Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Close"
+                        Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Delete"
+                        Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="comm:CustomCommands.LanguageProperties"
+                        Executed="CommandBinding_Executed"/>
+    </Window.CommandBindings>
+    <Grid MouseDown="notList_MouseDown">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Menu x:Name="menuBar" Margin="0,0,0.4,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="18">
+            <MenuItem x:Name="fileMenuItem" Header="File">
+                <MenuItem x:Name="fileOpenMenuItem" Header="Open" HorizontalAlignment="Left" Command="ApplicationCommands.Open"/>
+                <MenuItem x:Name="newFileMenuItem" Header="New" HorizontalAlignment="Left" Command="ApplicationCommands.New"/>
+                <MenuItem x:Name="fileCloseMenuItem" Header="Close" HorizontalAlignment="Left" IsEnabled="False" Command="ApplicationCommands.Close"/>
+                <Separator HorizontalAlignment="Left"/>
+                <MenuItem x:Name="fileSaveMenuItem" Header="Save" HorizontalAlignment="Left" InputGestureText="Strg + S" IsEnabled="False" Command="ApplicationCommands.Save"/>
+            </MenuItem>
+            <MenuItem x:Name="editMenuItem" Header="Edit">
+                <MenuItem x:Name="editLanguageMenuItem" Header="Language properties" Command="comm:CustomCommands.LanguageProperties" HorizontalAlignment="Left" IsEnabled="False"/>
+            </MenuItem>
+        </Menu>
+        <TextBox x:Name="textBox" Margin="10,5,10.4,9.8" Grid.Row="1" TextWrapping="Wrap" IsEnabled="False" Grid.ColumnSpan="2" 
+                 TextChanged="textBox_TextChanged" MouseDown="notList_MouseDown"/>
+        <ListView x:Name="listItemsView" Margin="10,23,5,5" IsEnabled="False" SelectionChanged="listItemsView_SelectionChanged"
+                  SelectionMode="Single">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="cmItemsAdd" Click="cmItemsAdd_Click" Header="Add Item"/>
+                    <MenuItem x:Name="cmItemsDelete" Command="ApplicationCommands.Delete" Header="Delete"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView x:Name="listItemsGrid" AllowsColumnReorder="True"
+                          ColumnHeaderToolTip="Strings">
+                    <GridViewColumn Header="String Key "
+                                    DisplayMemberBinding="{Binding Key}">
+                        
+                    </GridViewColumn>
+                    <GridViewColumn Header=" Values "
+                                    DisplayMemberBinding="{Binding ValuesCount}">
+                        
+                    </GridViewColumn>
+                    <GridViewColumn Header=" Description"
+                                    DisplayMemberBinding="{Binding Description}">
+                        
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ListView x:Name="listValuesView" Grid.Column="1" Margin="5,23,10,5" IsEnabled="False"
+                  SelectionChanged="listValuesView_SelectionChanged"
+                  SelectionMode="Single">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="cmValuesAdd" Click="cmValuesAdd_Click" Header="Add Value"/>
+                    <MenuItem x:Name="cmValuesDelete" Command="ApplicationCommands.Delete" Header="Delete"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView x:Name="listValuesGrid" AllowsColumnReorder="True"
+                          ColumnHeaderToolTip="Strings">
+                    <GridViewColumn Header="Content" Width="500">
+                        
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
