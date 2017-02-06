@@ -30,9 +30,9 @@ namespace XML_Editor_WuffPad
     public partial class MainWindow : Window
     {
         #region Variables and constants
-        private readonly string fileScratchPath = Environment.CurrentDirectory + "\\language.xml";
-        private readonly string dictFilePath = Environment.CurrentDirectory + "\\descriptions.dict";
-        private readonly string defaultKeysFilePath = Environment.CurrentDirectory + "\\defaultKeys.list";
+        private readonly string fileScratchPath = Environment.CurrentDirectory + "\\..\\..\\language.xml";
+        private readonly string dictFilePath = Environment.CurrentDirectory + "\\..\\..\\descriptions.dict";
+        private readonly string defaultKeysFilePath = Environment.CurrentDirectory + "\\..\\..\\defaultKeys.db";
         private readonly string settingsDbFilePath = Environment.CurrentDirectory + "\\settings.db";
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
