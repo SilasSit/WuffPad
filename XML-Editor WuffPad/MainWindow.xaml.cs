@@ -53,6 +53,7 @@ namespace XML_Editor_WuffPad
         private int lastClicked = -1;
         private const int clickedItems = 0;
         private const int clickedValues = 1;
+        private List<string> commentLines = new List<string>();
         #endregion
         public MainWindow()
         {
@@ -293,6 +294,17 @@ namespace XML_Editor_WuffPad
         private XmlStrings readXmlString(string fileString)
         {
             string[] splitted = fileString.Split('\n');
+            foreach (string s in splitted)
+            {
+                if (s.StartsWith("<!--"))
+                {
+                    commentLines.Add(s);
+                }
+                else if (s.StartsWith("  <language"))
+                {
+                    break;
+                }
+            }
             XmlStrings result;
             try
             {
@@ -312,11 +324,27 @@ namespace XML_Editor_WuffPad
 
         private string serializeXmlToString()
         {
+
             XmlSerializer serializer = new XmlSerializer(typeof(XmlStrings));
             using (TextWriter tw = new StringWriter())
             {
                 serializer.Serialize(tw, loadedFile);
-                return tw.ToString();
+                string[] results = tw.ToString().Split('\n');
+                string result = results[0];
+                foreach (string s in commentLines)
+                {
+                    result += "\n" + s;
+                }
+                bool firstString = true;
+                foreach (string s in results)
+                {
+                    if (!firstString)
+                    {
+                        result += "\n" + s;
+                    }
+                    firstString = false;
+                }
+                return result;
             }
         }
 
