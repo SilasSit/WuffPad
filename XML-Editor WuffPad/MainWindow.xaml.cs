@@ -40,10 +40,10 @@ namespace XML_Editor_WuffPad
         private bool valueHasChanged = false;
         private string saveDirectory = Environment.CurrentDirectory + "language.xml";
         private string loadDirectory = Environment.CurrentDirectory + "language.xml";
-        private XmlStrings loadedFile;
+        private XmlStrings loadedFile = new XmlStrings();
         private ObservableCollection<XmlString> currentStringsList = new ObservableCollection<XmlString>();
         private ObservableCollection<string> currentValuesList = new ObservableCollection<string>();
-        private XmlString currentString;
+        private XmlString currentString = new XmlString();
         private int currentStringIndex;
         private string currentValue;
         private int currentValueIndex;
@@ -58,6 +58,8 @@ namespace XML_Editor_WuffPad
         {
             InitializeComponent();
             getDictAndDefaultKeys();
+            listItemsView.ItemsSource = currentStringsList;
+            listValuesView.ItemsSource = currentValuesList;
             updateStatus();
         }
 
@@ -108,9 +110,9 @@ namespace XML_Editor_WuffPad
                 foreach (XmlString s in loadedFile.Strings)
                 {
                     s.Description = getDescription(s.Key);
-                    currentStringsList.Add(s);
+                    loadedFile.Strings.Add(s);
                 }
-                listItemsView.ItemsSource = currentStringsList;
+                currentStringsList = loadedFile.Strings;
             }
             fileIsOpen = true;
             textHasChanged = true;
@@ -159,7 +161,6 @@ namespace XML_Editor_WuffPad
                 s.Description = getDescription(s.Key);
                 currentStringsList.Add(s);
             }
-            listItemsView.ItemsSource = currentStringsList;
             updateStatus();
         }
 
@@ -191,23 +192,18 @@ namespace XML_Editor_WuffPad
             {
                 switch (lastClicked)
                 {
-                    case 0:
+                    case clickedItems:
                         List<XmlString> ls = new List<XmlString>();
-                        foreach (XmlString s in currentStringsList)
-                        {
-                            if (s.Key == currentString.Key)
-                            {
-                                ls.Add(s);
-                            }
-                        }
-                        foreach (XmlString s in ls)
-                        {
-                            loadedFile.Strings.Remove(s);
-                        }
+                        loadedFile.Strings.Remove((XmlString)listItemsView.SelectedItem);
+                        currentStringsList = loadedFile.Strings;
+                        currentValuesList = new ObservableCollection<string>();
+                        currentString = null;
+                        valueHasChanged = true;
+                        textBox.Text = "";
                         break;
-                    case 1:
+                    case clickedValues:
                         List<string> ls2 = new List<string>();
-                        foreach (string s in currentValuesList)
+                        foreach (string s in currentString.Values)
                         {
                             if (s == currentValue)
                             {
@@ -217,12 +213,15 @@ namespace XML_Editor_WuffPad
                         foreach (string s in ls2)
                         {
                             currentString.Values.Remove(s);
+                            currentValuesList = currentString.Values;
                             loadedFile.Strings[currentStringIndex] = currentString;
+                            currentStringsList = loadedFile.Strings;
+                            valueHasChanged = true;
+                            textBox.Text = "";
                         }
+                        listItemsView.SelectedIndex = -1;
                         break;
                 }
-                showValues(currentString);
-                showValue(currentValue);
                 currentStringsList.Clear();
                 foreach (XmlString s in loadedFile.Strings)
                 {
@@ -256,10 +255,13 @@ namespace XML_Editor_WuffPad
             if (itemIsOpen)
             {
                 listValuesView.IsEnabled = true;
+                contentColumn.Width = 500;
+                contentColumn.Width = double.NaN;
             }
             else
             {
                 listValuesView.IsEnabled = false;
+                contentColumn.Width = 500;
             }
             if (valueIsOpen)
             {
@@ -290,6 +292,7 @@ namespace XML_Editor_WuffPad
 
         private XmlStrings readXmlString(string fileString)
         {
+            string[] splitted = fileString.Split('\n');
             XmlStrings result;
             try
             {
@@ -381,12 +384,15 @@ namespace XML_Editor_WuffPad
             {
                 textHasChanged = true;
                 currentString.Values[currentValueIndex] = textBox.Text;
+                currentValuesList = currentString.Values;
                 loadedFile.Strings[currentStringIndex] = currentString;
+                currentStringsList = loadedFile.Strings;
             }
             else if (valueHasChanged)
             {
                 valueHasChanged = false;
             }
+            updateStatus();
         }
 
         private void wuffPadWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -449,8 +455,10 @@ namespace XML_Editor_WuffPad
             int index = listItemsView.SelectedIndex;
             if (index >= 0)
             {
-                showValues(currentStringsList[index]);
                 currentStringIndex = index;
+                currentString = loadedFile.Strings[index];
+                currentValuesList = currentString.Values;
+                listValuesView.ItemsSource = currentValuesList;
                 itemIsOpen = true;
             }
             else
@@ -466,7 +474,7 @@ namespace XML_Editor_WuffPad
             int index = listValuesView.SelectedIndex;
             if (index >= 0)
             {
-                showValue(currentValuesList[index]);
+                showValue(currentString.Values[index]);
                 currentValueIndex = index;
                 valueIsOpen = true;
                 valueHasChanged = true;
@@ -495,9 +503,8 @@ namespace XML_Editor_WuffPad
                     currentString = xs;
                     currentValue = null;
                     textHasChanged = true;
-                    listItemsView.ItemsSource = currentStringsList;
                     listItemsView.SelectedIndex = loadedFile.Strings.Count - 1;
-                    listItemsView.ScrollIntoView(currentStringsList[currentStringsList.Count - 1]);
+                    listItemsView.ScrollIntoView(loadedFile.Strings[loadedFile.Strings.Count - 1]);
                 }
                 else
                 {
@@ -524,12 +531,12 @@ namespace XML_Editor_WuffPad
                         break;
                     }
                 }
+                currentValuesList = currentString.Values;
                 textHasChanged = true;
-                listValuesView.ItemsSource = currentValuesList;
                 showValues(currentString);
                 showValue(currentValue);
-                listValuesView.SelectedIndex = currentValuesList.Count - 1;
-                listValuesView.ScrollIntoView(currentValuesList[currentValuesList.Count - 1]);
+                listValuesView.SelectedIndex = currentString.Values.Count - 1;
+                listValuesView.ScrollIntoView(currentString.Values[currentString.Values.Count - 1]);
             }
         }
         #endregion
@@ -537,8 +544,6 @@ namespace XML_Editor_WuffPad
         #region Display Control
         private void showValues(XmlString s)
         {
-            listValuesView.ItemsSource = s.Values;
-            currentValuesList = s.Values;
             currentString = s;
         }
 
@@ -564,14 +569,13 @@ namespace XML_Editor_WuffPad
             }
             textBox.Clear();
             textHasChanged = false;
-            currentString = null;
+            currentString = new XmlString();
             currentStringIndex = -1;
-            currentStringsList.Clear();
+            loadedFile.Strings = new ObservableCollection<XmlString>();
+            currentStringsList = loadedFile.Strings;
             currentValue = null;
             currentValueIndex = -1;
-            currentValuesList.Clear();
-            listValuesView.ItemsSource = new List<string>();
-            listItemsView.ItemsSource = new List<XmlString>();
+            currentString.Values.Clear();
             fileIsOpen = false;
             textHasChanged = false;
             itemIsOpen = false;

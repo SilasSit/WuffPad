@@ -9,13 +9,13 @@ namespace XML_Editor_WuffPad.XMLClasses
 {
     public class XmlLanguage
     {
-        [XmlElement("name")]
+        [XmlAttribute("name")]
         public string Name { get; set; }
-        [XmlElement("base")]
+        [XmlAttribute("base")]
         public string Base { get; set; }
-        [XmlElement("variant")]
+        [XmlAttribute("variant")]
         public string Variant { get; set; }
-        [XmlElement("owner")]
+        [XmlAttribute("owner")]
         public string Owner { get; set; }
     }
 }

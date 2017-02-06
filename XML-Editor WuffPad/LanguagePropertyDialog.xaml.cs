@@ -20,14 +20,18 @@ namespace XML_Editor_WuffPad
     public partial class LanguagePropertyDialog : Window
     {
         private bool canCancel;
+        private string __base;
+        private string __name;
+        private string __owner;
+        private string __variant;
         public LanguagePropertyDialog(bool firstTime = false, string name = "", string owner = "", string _base = "", string variant = "")
         {
             InitializeComponent();
             canCancel = !firstTime;
-            textBoxBase.Text = _base;
-            textBoxName.Text = name;
-            textBoxOwner.Text = owner;
-            textBoxVariant.Text = variant;
+            __base = _base;
+            __name = name;
+            __owner = owner;
+            __variant = variant;
         }
 
         #region Fields
@@ -88,6 +92,10 @@ namespace XML_Editor_WuffPad
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             textBoxName.Focus();
+            textBoxBase.Text = __base;
+            textBoxName.Text = __name;
+            textBoxOwner.Text = __owner;
+            textBoxVariant.Text = __variant;
         }
     }
 }

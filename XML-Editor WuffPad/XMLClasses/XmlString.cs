@@ -16,6 +16,8 @@ namespace XML_Editor_WuffPad.XMLClasses
         }
         [XmlElement("value")]
         public ObservableCollection<string> Values { get; set; }
+        [XmlAttribute("deprecated")]
+        public string DeprecatedString;
         [XmlAttribute("key")]
         public string Key { get; set; }
         [XmlAttribute("isgif")]

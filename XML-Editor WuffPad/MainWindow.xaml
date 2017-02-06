@@ -86,7 +86,7 @@
             <ListView.View>
                 <GridView x:Name="listValuesGrid" AllowsColumnReorder="True"
                           ColumnHeaderToolTip="Strings">
-                    <GridViewColumn Header="Content" Width="500">
+                    <GridViewColumn x:Name="contentColumn" Header="Content" Width="500">
                         
                     </GridViewColumn>
                 </GridView>
