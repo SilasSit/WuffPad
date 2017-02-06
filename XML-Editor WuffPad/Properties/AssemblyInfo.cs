@@ -7,12 +7,12 @@ using System.Windows;
 // Allgemeine Informationen über eine Assembly werden über die folgenden 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
-[assembly: AssemblyTitle("XML-Editor WuffPad")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("WuffPad")]
+[assembly: AssemblyDescription("An XML editor created especially for the @werewolfbot on telegram")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("HP Inc.")]
+[assembly: AssemblyCompany("Flomtopia")]
 [assembly: AssemblyProduct("XML-Editor WuffPad")]
-[assembly: AssemblyCopyright("Copyright © HP Inc. 2017")]
+[assembly: AssemblyCopyright("Open source")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
