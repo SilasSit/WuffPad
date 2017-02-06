@@ -532,7 +532,7 @@ namespace XML_Editor_WuffPad
             }
         }
         #endregion
-
+        
         #region Display Control
         private void showValues(XmlString s)
         {
