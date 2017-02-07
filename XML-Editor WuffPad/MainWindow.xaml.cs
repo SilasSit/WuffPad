@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,7 +18,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml.Serialization;
 using XML_Editor_WuffPad.Commands;
 using XML_Editor_WuffPad.XMLClasses;
@@ -30,10 +30,20 @@ namespace XML_Editor_WuffPad
     public partial class MainWindow : Window
     {
         #region Variables and constants
-        private readonly string fileScratchPath = Environment.CurrentDirectory + "\\..\\..\\language.xml";
-        private readonly string dictFilePath = Environment.CurrentDirectory + "\\..\\..\\descriptions.dict";
-        private readonly string defaultKeysFilePath = Environment.CurrentDirectory + "\\..\\..\\defaultKeys.db";
-        private readonly string settingsDbFilePath = Environment.CurrentDirectory + "\\settings.db";
+        internal static string RootDirectory
+        {
+            get
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return Path.GetDirectoryName(path);
+            }
+        }
+        private readonly string fileScratchPath = Path.Combine(RootDirectory,"Resources\\language.xml");
+        private readonly string dictFilePath = Path.Combine(RootDirectory, "Resources\\descriptions.dict");
+        private readonly string defaultKeysFilePath = Path.Combine(RootDirectory, "Resources\\standardKeys.db");
+        private readonly string settingsDbFilePath = Path.Combine(RootDirectory, "\\settings.db");
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
