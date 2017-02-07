@@ -86,7 +86,7 @@ namespace XML_Editor_WuffPad
             checkSettingsDb();
             getDictAndDefaultKeys();
             try { fetchNewestFiles(); }
-            catch {}
+            catch (Exception e) { MessageBox.Show(e.ToString() +e.Message + e.StackTrace); }
             listItemsView.ItemsSource = currentStringsList;
             listValuesView.ItemsSource = currentValuesList;
             updateStatus();
@@ -117,6 +117,11 @@ namespace XML_Editor_WuffPad
             }
             WebClient wc = new WebClient();
             wc.DownloadFile(versionFilePathOnline, "version.txt");
+            string versionFilePathRaw = versionFilePath.Remove(versionFilePath.LastIndexOf('\\') + 1);
+            if (!Directory.Exists(versionFilePathRaw))
+            {
+                Directory.CreateDirectory(versionFilePathRaw);
+            }
             if (File.Exists(versionFilePath)) File.Delete(versionFilePath);
             File.Move("version.txt", versionFilePath);
             List<string[]> version = new List<string[]>();
@@ -150,6 +155,11 @@ namespace XML_Editor_WuffPad
         {
             WebClient wc = new WebClient();
             wc.DownloadFile(url, "temp");
+            string pathToRaw = pathTo.Remove(pathTo.LastIndexOf('\\') + 1);
+            if (!Directory.Exists(pathToRaw))
+            {
+                Directory.CreateDirectory(pathToRaw);
+            }
             if (File.Exists(pathTo)) File.Delete(pathTo);
             File.Move("temp", pathTo);
         }
