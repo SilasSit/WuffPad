@@ -14,6 +14,7 @@ namespace XML_Editor_WuffPad.XMLClasses
         public XmlStrings()
         {
             Strings = new ObservableCollection<XmlString>();
+            Language = new XmlLanguage();
         }
         [XmlElement("language")]
         public XmlLanguage Language { get; set; }

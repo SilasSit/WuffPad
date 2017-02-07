@@ -86,6 +86,7 @@ namespace XML_Editor_WuffPad
                 MessageBox.Show("Please fill all required boxes!");
                 return;
             }
+            canCancel = true;
             DialogResult = true;
         }
 
@@ -100,8 +101,7 @@ namespace XML_Editor_WuffPad
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (canCancel) DialogResult = false;
-            else
+            if (!canCancel)
             {
                 MessageBox.Show("You can't cancel now!");
                 e.Cancel = true;

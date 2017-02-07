@@ -61,15 +61,15 @@
                           ColumnHeaderToolTip="Strings">
                     <GridViewColumn Header="String Key "
                                     DisplayMemberBinding="{Binding Key}">
-                        
+
                     </GridViewColumn>
                     <GridViewColumn Header=" Values "
                                     DisplayMemberBinding="{Binding ValuesCount}">
-                        
+
                     </GridViewColumn>
                     <GridViewColumn Header=" Description"
                                     DisplayMemberBinding="{Binding Description}">
-                        
+
                     </GridViewColumn>
                 </GridView>
             </ListView.View>
@@ -87,7 +87,7 @@
                 <GridView x:Name="listValuesGrid" AllowsColumnReorder="True"
                           ColumnHeaderToolTip="Strings">
                     <GridViewColumn x:Name="contentColumn" Header="Content" Width="500">
-                        
+
                     </GridViewColumn>
                 </GridView>
             </ListView.View>

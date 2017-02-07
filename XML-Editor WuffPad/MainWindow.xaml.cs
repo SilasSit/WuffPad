@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,10 +41,23 @@ namespace XML_Editor_WuffPad
                 return Path.GetDirectoryName(path);
             }
         }
-        private readonly string fileScratchPath = Path.Combine(RootDirectory,"Resources\\language.xml");
-        private readonly string dictFilePath = Path.Combine(RootDirectory, "Resources\\descriptions.dict");
-        private readonly string defaultKeysFilePath = Path.Combine(RootDirectory, "Resources\\standardKeys.db");
-        private readonly string settingsDbFilePath = Path.Combine(RootDirectory, "\\settings.db");
+        private static readonly string serverBaseUrl = "http://www.meyer-alpers.de/florian/WuffPad/Resources/";
+        private static readonly string fileScratchPath = Path.Combine(RootDirectory, "Resources\\language.xml");
+        private static readonly string fileScratchPathOnline = serverBaseUrl + "language.xml";
+        private static readonly string dictFilePath = Path.Combine(RootDirectory, "Resources\\descriptions.dict");
+        private static readonly string dictFilePathOnline = serverBaseUrl + "descriptions.dict";
+        private static readonly string defaultKeysFilePath = Path.Combine(RootDirectory, "Resources\\standardKeys.db");
+        private static readonly string defaultKeysFilePathOnline = serverBaseUrl + "standardKeys.db";
+        private static readonly string versionFilePath = Path.Combine(RootDirectory, "Resources\\versions.txt");
+        private static readonly string versionFilePathOnline = serverBaseUrl + "versions.txt";
+        private static readonly string settingsDbFilePath = Path.Combine(RootDirectory, "settings.db");
+        private static readonly string[] filesNames = { "language.xml", "descriptions.dict", "standardKeys.db" };
+        private static readonly Dictionary<string, string[]> namesPathsDict = new Dictionary<string, string[]>()
+        {
+            {"language.xml", new string[] { fileScratchPathOnline, fileScratchPath } },
+            {"descriptions.dict", new string[] { dictFilePathOnline, dictFilePath } },
+            {"standardKeys.db", new string[] { defaultKeysFilePathOnline, defaultKeysFilePath } }
+        };
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
@@ -65,18 +79,81 @@ namespace XML_Editor_WuffPad
         private const int clickedItems = 0;
         private const int clickedValues = 1;
         private List<string> commentLines = new List<string>();
-        #endregion
+#endregion
         public MainWindow()
         {
             InitializeComponent();
             checkSettingsDb();
             getDictAndDefaultKeys();
+            try { fetchNewestFiles(); }
+            catch {}
             listItemsView.ItemsSource = currentStringsList;
             listValuesView.ItemsSource = currentValuesList;
             updateStatus();
         }
 
-        #region Functionable Methods
+#region Functionable Methods
+        private void downloadFileByName(string name)
+        {
+            downloadFile(namesPathsDict[name][0], namesPathsDict[name][1]);
+        }
+
+        private void fetchNewestFiles()
+        {
+            bool versionFileExists = File.Exists(versionFilePath);
+            List<string[]> version_old = new List<string[]>();
+            Dictionary<string, int> version_oldDict = new Dictionary<string, int>();
+            if (versionFileExists)
+            {
+                foreach (string s in File.ReadAllLines(versionFilePath))
+                {
+                    string[] strs = s.Split(':');
+                    version_old.Add(strs);
+                }
+                foreach (string[] s in version_old)
+                {
+                    version_oldDict.Add(s[0], Convert.ToInt16(s[1]));
+                }
+            }
+            WebClient wc = new WebClient();
+            wc.DownloadFile(versionFilePathOnline, "version.txt");
+            if (File.Exists(versionFilePath)) File.Delete(versionFilePath);
+            File.Move("version.txt", versionFilePath);
+            List<string[]> version = new List<string[]>();
+            foreach (string s in File.ReadAllLines(versionFilePath))
+            {
+                string[] strs = s.Split(':');
+                version.Add(strs);
+            }
+            Dictionary<string, int> versionDict = new Dictionary<string, int>();
+            foreach (string[] s in version)
+            {
+                versionDict.Add(s[0], Convert.ToInt16(s[1]));
+            }
+            foreach (string s in filesNames)
+            {
+                if (version_oldDict.ContainsKey(s))
+                {
+                    if (version_oldDict[s] < versionDict[s])
+                    {
+                        downloadFileByName(s);
+                    }
+                }
+                else
+                {
+                    downloadFileByName(s);
+                }
+            }
+        }
+
+        private void downloadFile(string url, string pathTo)
+        {
+            WebClient wc = new WebClient();
+            wc.DownloadFile(url, "temp");
+            if (File.Exists(pathTo)) File.Delete(pathTo);
+            File.Move("temp", pathTo);
+        }
+
         private void setSetting(string key, bool value)
         {
             Dictionary<string, bool> dict = JsonConvert.DeserializeObject<Dictionary<string, bool>>(
@@ -154,12 +231,12 @@ namespace XML_Editor_WuffPad
                     "Use the english file as a blueprint?", "New File", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
+                loadedFile = new XmlStrings();
                 getFileFromScratch();
                 currentStringsList.Clear();
                 foreach (XmlString s in loadedFile.Strings)
                 {
                     s.Description = getDescription(s.Key);
-                    loadedFile.Strings.Add(s);
                 }
                 currentStringsList = loadedFile.Strings;
             }
@@ -173,6 +250,7 @@ namespace XML_Editor_WuffPad
                 loadedFile.Language.Owner = lpd.LanguageOwner;
                 loadedFile.Language.Variant = lpd.LanguageVariant;
             }
+            listItemsView.ItemsSource = currentStringsList;
             updateStatus();
         }
 
@@ -208,8 +286,10 @@ namespace XML_Editor_WuffPad
             foreach (XmlString s in loadedFile.Strings)
             {
                 s.Description = getDescription(s.Key);
-                currentStringsList.Add(s);
+                //currentStringsList.Add(s);
             }
+            currentStringsList = loadedFile.Strings;
+            listItemsView.ItemsSource = currentStringsList;
             updateStatus();
         }
 
@@ -234,7 +314,7 @@ namespace XML_Editor_WuffPad
             }
         }
 
-        #region Big Delete Method
+#region Big Delete Method
         private void executeDeleteCommand()
         {
             if (lastClicked >= 0)
@@ -242,49 +322,34 @@ namespace XML_Editor_WuffPad
                 switch (lastClicked)
                 {
                     case clickedItems:
-                        List<XmlString> ls = new List<XmlString>();
                         loadedFile.Strings.Remove((XmlString)listItemsView.SelectedItem);
                         currentStringsList = loadedFile.Strings;
                         currentValuesList = new ObservableCollection<string>();
-                        currentString = null;
+                        listValuesView.ItemsSource = currentValuesList;
+                        currentString = new XmlString();
                         valueHasChanged = true;
                         textBox.Text = "";
                         break;
                     case clickedValues:
-                        List<string> ls2 = new List<string>();
-                        foreach (string s in currentString.Values)
-                        {
-                            if (s == currentValue)
-                            {
-                                ls2.Add(s);
-                            }
-                        }
-                        foreach (string s in ls2)
-                        {
-                            currentString.Values.Remove(s);
-                            currentValuesList = currentString.Values;
-                            loadedFile.Strings[currentStringIndex] = currentString;
-                            currentStringsList = loadedFile.Strings;
-                            valueHasChanged = true;
-                            textBox.Text = "";
-                        }
-                        listItemsView.SelectedIndex = -1;
+                        string s = currentString.Values[currentValueIndex];
+                        currentString.Values.Remove(s);
+                        currentValuesList = currentString.Values;
+                        var temp = currentStringIndex;
+                        loadedFile.Strings[currentStringIndex] = currentString;
+                        listItemsView.SelectedIndex = temp;
+                        currentStringsList = loadedFile.Strings;
+                        valueHasChanged = true;
+                        textBox.Text = "";
                         break;
-                }
-                currentStringsList.Clear();
-                foreach (XmlString s in loadedFile.Strings)
-                {
-                    s.Description = getDescription(s.Key);
-                    currentStringsList.Add(s);
                 }
                 textHasChanged = true;
             }
         }
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
-        #region Status Updating
+#region Status Updating
         public void updateStatus()
         {
             if (fileIsOpen)
@@ -321,9 +386,9 @@ namespace XML_Editor_WuffPad
                 textBox.IsEnabled = false;
             }
         }
-        #endregion
+#endregion
 
-        #region File and Xml Methods
+#region File and Xml Methods
         private void chooseDirectory()
         {
             SaveFileDialog sfd = new SaveFileDialog();
@@ -449,11 +514,12 @@ namespace XML_Editor_WuffPad
 
         private void getFileFromScratch()
         {
-            loadedFile = readXmlString(File.ReadAllText(fileScratchPath));
+            if (File.Exists(fileScratchPath)) loadedFile = readXmlString(File.ReadAllText(fileScratchPath));
+            else MessageBox.Show("Failed to load blueprint, connect to the internet and restart.");
         }
-        #endregion
+#endregion
 
-        #region XAML Stuff
+#region XAML Stuff
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (valueIsOpen && !valueHasChanged)
@@ -464,7 +530,7 @@ namespace XML_Editor_WuffPad
                 loadedFile.Strings[currentStringIndex] = currentString;
                 currentStringsList = loadedFile.Strings;
             }
-            else if (valueHasChanged)
+            if (valueHasChanged)
             {
                 valueHasChanged = false;
             }
@@ -548,9 +614,10 @@ namespace XML_Editor_WuffPad
             else
             {
                 itemIsOpen = false;
+                currentStringIndex = -1;
             }
             updateStatus();
-            lastClicked = 0;
+            lastClicked = clickedItems;
         }
 
         private void listValuesView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -563,8 +630,12 @@ namespace XML_Editor_WuffPad
                 valueIsOpen = true;
                 valueHasChanged = true;
             }
+            else
+            {
+                currentValueIndex = -1;
+            }
             updateStatus();
-            lastClicked = 1;
+            lastClicked = clickedValues;
         }
 
         private void cmItemsAdd_Click(object sender, RoutedEventArgs e)
@@ -623,9 +694,9 @@ namespace XML_Editor_WuffPad
                 listValuesView.ScrollIntoView(currentString.Values[currentString.Values.Count - 1]);
             }
         }
-        #endregion
+#endregion
         
-        #region Display Control
+#region Display Control
         private void showValues(XmlString s)
         {
             currentString = s;
@@ -633,6 +704,7 @@ namespace XML_Editor_WuffPad
 
         private void showValue(string s)
         {
+            valueHasChanged = true;
             textBox.Text = s;
             currentValue = s;
         }
@@ -669,6 +741,6 @@ namespace XML_Editor_WuffPad
             valueHasChanged = false;
             return true;
         }
-        #endregion
+#endregion
     }
 }
