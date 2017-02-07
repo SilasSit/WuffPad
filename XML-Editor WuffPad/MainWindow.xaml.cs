@@ -232,7 +232,14 @@ namespace XML_Editor_WuffPad
             if (result == MessageBoxResult.Yes)
             {
                 loadedFile = new XmlStrings();
-                getFileFromScratch();
+                try
+                {
+                    getFileFromScratch();
+                }
+                catch
+                {
+                    MessageBox.Show("Failed to load blueprint, connect to the internet and restart.");
+                }
                 currentStringsList.Clear();
                 foreach (XmlString s in loadedFile.Strings)
                 {
@@ -515,7 +522,7 @@ namespace XML_Editor_WuffPad
         private void getFileFromScratch()
         {
             if (File.Exists(fileScratchPath)) loadedFile = readXmlString(File.ReadAllText(fileScratchPath));
-            else MessageBox.Show("Failed to load blueprint, connect to the internet and restart.");
+            else throw new Exception("Failed to load file");
         }
 #endregion
 
