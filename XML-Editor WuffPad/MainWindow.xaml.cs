@@ -635,6 +635,10 @@ namespace XML_Editor_WuffPad
                 int index = listItemsView.SelectedIndex;
                 if (index >= 0)
                 {
+                    if (index != currentStringIndex)
+                    {
+                        valueIsOpen = false;
+                    }
                     currentStringIndex = index;
                     currentString = loadedFile.Strings[index];
                     currentValuesList = currentString.Values;
