@@ -79,6 +79,7 @@ namespace XML_Editor_WuffPad
         private const int clickedItems = 0;
         private const int clickedValues = 1;
         private List<string> commentLines = new List<string>();
+        private bool fromTextBox = false;
 #endregion
         public MainWindow()
         {
@@ -542,9 +543,15 @@ namespace XML_Editor_WuffPad
             if (valueIsOpen && !valueHasChanged)
             {
                 textHasChanged = true;
-                currentString.Values[currentValueIndex] = textBox.Text;
+                int temp = currentValueIndex;
+                fromTextBox = true;
+                currentString.Values[temp] = textBox.Text;
                 currentValuesList = currentString.Values;
-                loadedFile.Strings[currentStringIndex] = currentString;
+                currentValueIndex = temp;
+                temp = currentStringIndex;
+                fromTextBox = true;
+                loadedFile.Strings[temp] = currentString;
+                currentStringIndex = temp;
                 currentStringsList = loadedFile.Strings;
             }
             if (valueHasChanged)
@@ -639,20 +646,27 @@ namespace XML_Editor_WuffPad
 
         private void listValuesView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            int index = listValuesView.SelectedIndex;
-            if (index >= 0)
+            if (!fromTextBox)
             {
-                showValue(currentString.Values[index]);
-                currentValueIndex = index;
-                valueIsOpen = true;
-                valueHasChanged = true;
+                int index = listValuesView.SelectedIndex;
+                if (index >= 0)
+                {
+                    showValue(currentString.Values[index]);
+                    currentValueIndex = index;
+                    valueIsOpen = true;
+                    valueHasChanged = true;
+                }
+                else
+                {
+                    currentValueIndex = -1;
+                }
+                updateStatus();
+                lastClicked = clickedValues;
             }
             else
             {
-                currentValueIndex = -1;
+                fromTextBox = false;
             }
-            updateStatus();
-            lastClicked = clickedValues;
         }
 
         private void cmItemsAdd_Click(object sender, RoutedEventArgs e)
@@ -673,6 +687,7 @@ namespace XML_Editor_WuffPad
                     loadedFile.Strings.Add(xs);
                     currentStringsList = loadedFile.Strings;
                     currentString = xs;
+                    currentStringIndex = currentStringsList.IndexOf(xs);
                     currentValue = null;
                     textHasChanged = true;
                     listItemsView.SelectedIndex = loadedFile.Strings.Count - 1;
@@ -704,6 +719,7 @@ namespace XML_Editor_WuffPad
                     }
                 }
                 currentValuesList = currentString.Values;
+                currentValueIndex = currentValuesList.IndexOf("Add text here");
                 textHasChanged = true;
                 showValues(currentString);
                 showValue(currentValue);
