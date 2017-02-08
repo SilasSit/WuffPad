@@ -68,7 +68,8 @@
 
                     </GridViewColumn>
                     <GridViewColumn Header=" Description"
-                                    DisplayMemberBinding="{Binding Description}">
+                                    DisplayMemberBinding="{Binding Description}"
+                                    Width="400">
 
                     </GridViewColumn>
                 </GridView>
