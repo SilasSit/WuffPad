@@ -84,9 +84,9 @@ namespace XML_Editor_WuffPad
         {
             InitializeComponent();
             checkSettingsDb();
-            getDictAndDefaultKeys();
             try { fetchNewestFiles(); }
             catch /*(Exception e)*/ { /*MessageBox.Show(e.ToString() +e.Message + e.StackTrace);*/ }
+            getDictAndDefaultKeys();
             listItemsView.ItemsSource = currentStringsList;
             listValuesView.ItemsSource = currentValuesList;
             updateStatus();
