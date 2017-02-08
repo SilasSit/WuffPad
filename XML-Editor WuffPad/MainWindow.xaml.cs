@@ -558,6 +558,10 @@ namespace XML_Editor_WuffPad
             {
                 valueHasChanged = false;
             }
+            fromTextBox = true;
+            listItemsView.SelectedIndex = currentStringIndex;
+            fromTextBox = true;
+            listValuesView.SelectedIndex = currentValueIndex;
             updateStatus();
         }
 
@@ -626,22 +630,25 @@ namespace XML_Editor_WuffPad
 
         private void listItemsView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            int index = listItemsView.SelectedIndex;
-            if (index >= 0)
+            if (!fromTextBox)
             {
-                currentStringIndex = index;
-                currentString = loadedFile.Strings[index];
-                currentValuesList = currentString.Values;
-                listValuesView.ItemsSource = currentValuesList;
-                itemIsOpen = true;
+                int index = listItemsView.SelectedIndex;
+                if (index >= 0)
+                {
+                    currentStringIndex = index;
+                    currentString = loadedFile.Strings[index];
+                    currentValuesList = currentString.Values;
+                    listValuesView.ItemsSource = currentValuesList;
+                    itemIsOpen = true;
+                }
+                else
+                {
+                    itemIsOpen = false;
+                    currentStringIndex = -1;
+                }
+                updateStatus();
+                lastClicked = clickedItems;
             }
-            else
-            {
-                itemIsOpen = false;
-                currentStringIndex = -1;
-            }
-            updateStatus();
-            lastClicked = clickedItems;
         }
 
         private void listValuesView_SelectionChanged(object sender, SelectionChangedEventArgs e)
