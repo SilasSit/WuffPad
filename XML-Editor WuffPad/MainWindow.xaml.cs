@@ -562,6 +562,7 @@ namespace XML_Editor_WuffPad
             listItemsView.SelectedIndex = currentStringIndex;
             fromTextBox = true;
             listValuesView.SelectedIndex = currentValueIndex;
+            fromTextBox = false;
             updateStatus();
         }
 
@@ -653,6 +654,10 @@ namespace XML_Editor_WuffPad
                 updateStatus();
                 lastClicked = clickedItems;
             }
+            else
+            {
+                fromTextBox = false;
+            }
         }
 
         private void listValuesView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -663,6 +668,8 @@ namespace XML_Editor_WuffPad
                 if (index >= 0)
                 {
                     showValue(currentString.Values[index]);
+                    valueHasChanged = true;
+                    textBox.Text = currentString.Values[index];
                     currentValueIndex = index;
                     valueIsOpen = true;
                     valueHasChanged = true;
@@ -671,6 +678,7 @@ namespace XML_Editor_WuffPad
                 {
                     currentValueIndex = -1;
                 }
+                listValuesView.SelectedIndex = currentValueIndex;
                 updateStatus();
                 lastClicked = clickedValues;
             }
@@ -731,6 +739,8 @@ namespace XML_Editor_WuffPad
                 }
                 currentValuesList = currentString.Values;
                 currentValueIndex = currentValuesList.IndexOf("Add text here");
+                valueHasChanged = true;
+                textBox.Text = "Add text here";
                 textHasChanged = true;
                 showValues(currentString);
                 showValue(currentValue);
