@@ -651,6 +651,7 @@ namespace XML_Editor_WuffPad
                     itemIsOpen = false;
                     currentStringIndex = -1;
                 }
+                listItemsView.SelectedIndex = currentStringIndex;
                 updateStatus();
                 lastClicked = clickedItems;
             }
@@ -739,6 +740,7 @@ namespace XML_Editor_WuffPad
                 }
                 currentValuesList = currentString.Values;
                 currentValueIndex = currentValuesList.IndexOf("Add text here");
+                currentValue = currentString.Values[currentValueIndex];
                 valueHasChanged = true;
                 textBox.Text = "Add text here";
                 textHasChanged = true;
