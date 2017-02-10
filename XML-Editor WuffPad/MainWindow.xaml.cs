@@ -19,6 +19,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Xml;
 using System.Xml.Serialization;
 using XML_Editor_WuffPad.Commands;
 using XML_Editor_WuffPad.XMLClasses;
@@ -453,9 +454,15 @@ namespace XML_Editor_WuffPad
             }
         }
 
+        private string toUtf8(string input)
+        {
+            byte[] bytes = Encoding.Default.GetBytes(input);
+            input = Encoding.UTF8.GetString(bytes);
+            return input;
+        }
+
         private string serializeXmlToString()
         {
-
             XmlSerializer serializer = new XmlSerializer(typeof(XmlStrings));
             using (TextWriter tw = new StringWriter())
             {
@@ -475,7 +482,8 @@ namespace XML_Editor_WuffPad
                     }
                     firstString = false;
                 }
-                return result;
+                //result = Utf16ToUtf8(result);
+                return result.Replace("utf-16", "utf-8");
             }
         }
 
@@ -489,7 +497,7 @@ namespace XML_Editor_WuffPad
             string toWrite = serializeXmlToString();
             try
             {
-                File.WriteAllText(saveDirectory, toWrite);
+                File.WriteAllText(saveDirectory, toWrite, Encoding.UTF8);
             }
             catch (Exception e)
             {
