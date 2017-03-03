@@ -45,6 +45,10 @@
             <MenuItem x:Name="editMenuItem" Header="Edit">
                 <MenuItem x:Name="editLanguageMenuItem" Header="Language properties" Command="comm:CustomCommands.LanguageProperties" HorizontalAlignment="Left" IsEnabled="False"/>
             </MenuItem>
+            <MenuItem x:Name="infoMenuItem" Header="Info">
+                <MenuItem x:Name="closedlistItem" Header="#closedlist" Click="closedlistItem_Click"/>
+                <MenuItem x:Name="underdevItem" Header="#underdev" Click="underdevItem_Click"/>
+            </MenuItem>
         </Menu>
         <TextBox x:Name="textBox" Margin="10,5,10.4,9.8" Grid.Row="1" TextWrapping="Wrap" IsEnabled="False" Grid.ColumnSpan="2" 
                  TextChanged="textBox_TextChanged" MouseDown="notList_MouseDown"/>

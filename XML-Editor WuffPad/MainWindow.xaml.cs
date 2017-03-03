@@ -49,6 +49,8 @@ namespace XML_Editor_WuffPad
             {"descriptions.dict", new string[] { dictFilePathOnline, dictFilePath } },
             {"standardKeys.db", new string[] { defaultKeysFilePathOnline, defaultKeysFilePath } }
         };
+        private const string closedlistPath = "http://84.200.85.34/getClosedlist.php";
+        private const string underdevPath = "http://84.200.85.34/getUnderdev.php";
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
@@ -84,7 +86,55 @@ namespace XML_Editor_WuffPad
             updateStatus();
         }
 
-#region Functionable Methods
+        #region Functionable Methods
+        private bool checkValuesCorrect()
+        {
+            bool doSave = true;
+            foreach (XmlString s in loadedFile.Strings)
+            {
+                bool hadIt = true;
+                int parenthCount = 0;
+                do
+                {
+                    if (s.Description.Contains("{" + parenthCount.ToString() + "}"))
+                    {
+                        parenthCount++;
+                    }
+                    else
+                    {
+                        hadIt = false;
+                    }
+                } while (hadIt);
+                if (parenthCount > 0)
+                {
+                    foreach (string str in s.Values)
+                    {
+                        for (int i = 0; i < parenthCount; i++)
+                        {
+                            if (!str.Contains("{" + i + "}"))
+                            {
+                                MessageBoxResult result = MessageBox.Show("A value of " + s.Key +
+                                    " does not contain a {" + i + "}.\n" + 
+                                    "Save anyway? Press cancel to jump there.",
+                                    "Warning", MessageBoxButton.YesNoCancel);
+                                if (result == MessageBoxResult.No)
+                                {
+                                    doSave = false;
+                                }
+                                else if (result == MessageBoxResult.Cancel)
+                                {
+                                    listItemsView.ScrollIntoView(s);
+                                    listItemsView.SelectedItem = s;
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return doSave;
+        }
+
         private void downloadFileByName(string name)
         {
             downloadFile(namesPathsDict[name][0], namesPathsDict[name][1]);
@@ -358,7 +408,7 @@ namespace XML_Editor_WuffPad
 
 #endregion
 
-#region Status Updating
+        #region Status Updating
         public void updateStatus()
         {
             if (fileIsOpen)
@@ -397,7 +447,7 @@ namespace XML_Editor_WuffPad
         }
 #endregion
 
-#region File and Xml Methods
+        #region File and Xml Methods
         private void chooseDirectory()
         {
             SaveFileDialog sfd = new SaveFileDialog();
@@ -535,7 +585,7 @@ namespace XML_Editor_WuffPad
         }
 #endregion
 
-#region XAML Stuff
+        #region XAML Stuff
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (valueIsOpen && !valueHasChanged)
@@ -571,7 +621,10 @@ namespace XML_Editor_WuffPad
                 MessageBoxResult result = MessageBox.Show("File not saved!\nSave?", "", MessageBoxButton.YesNoCancel);
                 if (result == MessageBoxResult.Yes)
                 {
-                    saveXmlFile();
+                    if (checkValuesCorrect())
+                    {
+                        saveXmlFile();
+                    }
                 }
                 else if(result == MessageBoxResult.Cancel)
                 {
@@ -601,7 +654,10 @@ namespace XML_Editor_WuffPad
             }
             else if(e.Command == ApplicationCommands.Save)
             {
-                saveXmlFile();
+                if (checkValuesCorrect())
+                {
+                    saveXmlFile();
+                }
             }
             else if(e.Command == ApplicationCommands.Close)
             {
@@ -702,6 +758,7 @@ namespace XML_Editor_WuffPad
                 {
                     XmlString xs = new XmlString();
                     xs.Key = key;
+                    xs.Description = getDescription(xs.Key);
                     loadedFile.Strings.Add(xs);
                     currentStringsList = loadedFile.Strings;
                     currentString = xs;
@@ -744,13 +801,59 @@ namespace XML_Editor_WuffPad
                 textHasChanged = true;
                 showValues(currentString);
                 showValue(currentValue);
+                valueIsOpen = true;
                 listValuesView.SelectedIndex = currentString.Values.Count - 1;
                 listValuesView.ScrollIntoView(currentString.Values[currentString.Values.Count - 1]);
+                updateStatus();
             }
         }
-#endregion
-        
-#region Display Control
+
+        private void closedlistItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(closedlistPath);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                string closedlist;
+                using (StreamReader sr = new StreamReader(resStream))
+                {
+                    closedlist = sr.ReadToEnd();
+                }
+                ClosedlistWindow cw = new ClosedlistWindow("CURRENT CLOSEDLIST", 
+                    closedlist.Replace(":", ": "));
+                cw.ShowDialog();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to fetch #closedlist.");
+            }
+        }
+
+        private void underdevItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(underdevPath);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                string underdev;
+                using (StreamReader sr = new StreamReader(resStream))
+                {
+                    underdev = sr.ReadToEnd();
+                }
+                ClosedlistWindow cw = new ClosedlistWindow("LANGFILES UNDER DEVELOPMENT",
+                    underdev.Replace(":", ": "));
+                cw.ShowDialog();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to fetch #underdev.");
+            }
+        }
+        #endregion
+
+        #region Display Control
         private void showValues(XmlString s)
         {
             currentString = s;
@@ -795,7 +898,6 @@ namespace XML_Editor_WuffPad
             valueHasChanged = false;
             return true;
         }
-#endregion
-
+        #endregion
     }
 }
