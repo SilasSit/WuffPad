@@ -41,6 +41,7 @@
                 <MenuItem x:Name="fileCloseMenuItem" Header="Close" HorizontalAlignment="Left" IsEnabled="False" Command="ApplicationCommands.Close"/>
                 <Separator HorizontalAlignment="Left"/>
                 <MenuItem x:Name="fileSaveMenuItem" Header="Save" HorizontalAlignment="Left" InputGestureText="Strg + S" IsEnabled="False" Command="ApplicationCommands.Save"/>
+                <MenuItem x:Name="fileUploadMenuItem" Header="Upload" IsEnabled="False" Click="fileUploadMenuItem_Click"/>
             </MenuItem>
             <MenuItem x:Name="editMenuItem" Header="Edit">
                 <MenuItem x:Name="editLanguageMenuItem" Header="Language properties" Command="comm:CustomCommands.LanguageProperties" HorizontalAlignment="Left" IsEnabled="False"/>
