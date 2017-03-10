@@ -17,6 +17,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using XML_Editor_WuffPad.Properties;
 
 namespace XML_Editor_WuffPad
 {
@@ -48,7 +49,6 @@ namespace XML_Editor_WuffPad
         private static readonly string versionFilePathOnline = serverBaseUrl + "versions.txt";
         private static readonly string tokenFilePath = Path.Combine(RootDirectory, "Resources\\versions.txt");
         private static readonly string tokenFilePathOnline = serverBaseUrl + "token.cod";
-        private static readonly string settingsDbFilePath = Path.Combine(RootDirectory, "settings.db");
         private static readonly string[] filesNames = { "language.xml", "descriptions.dict", "standardKeys.db", "token.cod" };
         private static readonly Dictionary<string, string[]> namesPathsDict = new Dictionary<string, string[]>()
         {
@@ -87,7 +87,6 @@ namespace XML_Editor_WuffPad
         public MainWindow()
         {
             InitializeComponent();
-            checkSettingsDb();
             try { fetchNewestFiles(); }
             catch /*(Exception e)*/ { /*MessageBox.Show(e.ToString() +e.Message + e.StackTrace);*/ }
             getDictAndDefaultKeys();
@@ -218,38 +217,22 @@ namespace XML_Editor_WuffPad
 
         private void setSetting(string key, bool value)
         {
-            Dictionary<string, bool> dict = JsonConvert.DeserializeObject<Dictionary<string, bool>>(
-                System.IO.File.ReadAllText(settingsDbFilePath));
-            if (dict.ContainsKey(key))
+            switch (key)
             {
-                dict[key] = value;
+                case "commentWarningDisable":
+                    Settings.Default.doNotShowWarningAgain = value;
+                    break;
             }
-            else
-            {
-                dict.Add(key, value);
-            }
-            System.IO.File.WriteAllText(settingsDbFilePath, JsonConvert.SerializeObject(dict));
         }
 
         private bool checkSetting(string key)
         {
-            string settingsString = System.IO.File.ReadAllText(settingsDbFilePath);
-            Dictionary<string, bool> settingsDic = 
-                JsonConvert.DeserializeObject<Dictionary<string, bool>>(settingsString);
-            if (settingsDic.ContainsKey(key))
+            switch (key)
             {
-                return settingsDic[key];
+                case "commentWarningDisable":
+                    return Settings.Default.doNotShowWarningAgain;
             }
-            return false;
-        }
-
-        private void checkSettingsDb()
-        {
-            if (!System.IO.File.Exists(settingsDbFilePath))
-            {
-                System.IO.File.WriteAllText(settingsDbFilePath, 
-                    JsonConvert.SerializeObject(new Dictionary<string, bool>()));
-            }
+            throw new Exception("Setting not found");
         }
 
         private string getDefaultMissingKey()
