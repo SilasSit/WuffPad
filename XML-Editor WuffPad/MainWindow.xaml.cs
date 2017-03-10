@@ -16,6 +16,7 @@ using XML_Editor_WuffPad.XMLClasses;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace XML_Editor_WuffPad
 {
@@ -58,6 +59,7 @@ namespace XML_Editor_WuffPad
         };
         private const string closedlistPath = "http://84.200.85.34/getClosedlist.php";
         private const string underdevPath = "http://84.200.85.34/getUnderdev.php";
+        private const string wikiPageUrl = "https://github.com/Olfi01/WuffPad/wiki";
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
@@ -890,6 +892,11 @@ namespace XML_Editor_WuffPad
             {
                 MessageBox.Show("An error occurred.");
             }
+        }
+
+        private void wikiItem_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(wikiPageUrl);
         }
         #endregion
 
