@@ -370,6 +370,11 @@ namespace XML_Editor_WuffPad
             }
         }
 
+        private void openFindDialog()
+        {
+            //stuff's gotta be added here
+        }
+
 #region Big Delete Method
         private void executeDeleteCommand()
         {
@@ -676,6 +681,10 @@ namespace XML_Editor_WuffPad
             {
                 openLanguageDialog();
             }
+            else if (e.Command == ApplicationCommands.Find)
+            {
+                openFindDialog();
+            }
             else
             {
                 throw new NotImplementedException(
@@ -865,7 +874,8 @@ namespace XML_Editor_WuffPad
                     string[] splitted = saveDirectory.Split('\\');
                     FileStream fs = System.IO.File.OpenRead(saveDirectory);
                     FileToSend fts = new FileToSend(splitted[splitted.Length - 1], fs);
-                    Task t = client.SendDocumentAsync(UploadChatId, fts);
+                    Task t = client.SendDocumentAsync(UploadChatId, fts,
+                        "Please forward this message to this chat again, so the other bot can see it.");
                     t.Wait();
                     MessageBox.Show("File was sent to translation group. It will be uploaded as soon as an admin"
                         + " comes across it.");

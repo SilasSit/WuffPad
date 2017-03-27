@@ -24,6 +24,8 @@
                         Executed="CommandBinding_Executed"/>
         <CommandBinding Command="comm:CustomCommands.LanguageProperties"
                         Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="ApplicationCommands.Find"
+                        Executed="CommandBinding_Executed"/>
     </Window.CommandBindings>
     <Grid MouseDown="notList_MouseDown">
         <Grid.ColumnDefinitions>

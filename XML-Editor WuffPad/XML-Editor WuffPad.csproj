@@ -29,7 +29,7 @@
     <UpdateUrl>http://www.meyer-alpers.de/florian/WuffPad/Data/</UpdateUrl>
     <WebPage>publish.htm</WebPage>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>44</ApplicationRevision>
+    <ApplicationRevision>45</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -105,6 +105,9 @@
     <Compile Include="CommentWarningDialog.xaml.cs">
       <DependentUpon>CommentWarningDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FindDialog.xaml.cs">
+      <DependentUpon>FindDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NewStringDialog.xaml.cs">
       <DependentUpon>NewStringDialog.xaml</DependentUpon>
     </Compile>
@@ -120,6 +123,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CommentWarningDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FindDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
