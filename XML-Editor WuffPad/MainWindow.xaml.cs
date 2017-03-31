@@ -13,6 +13,11 @@ using System.Windows.Input;
 using System.Xml.Serialization;
 using XML_Editor_WuffPad.Commands;
 using XML_Editor_WuffPad.XMLClasses;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using XML_Editor_WuffPad.Properties;
 
 namespace XML_Editor_WuffPad
 {
@@ -22,6 +27,7 @@ namespace XML_Editor_WuffPad
     public partial class MainWindow : Window
     {
         #region Variables and constants
+        private const long UploadChatId = -1001074012132;
         internal static string RootDirectory
         {
             get
@@ -41,14 +47,19 @@ namespace XML_Editor_WuffPad
         private static readonly string defaultKeysFilePathOnline = serverBaseUrl + "standardKeys.db";
         private static readonly string versionFilePath = Path.Combine(RootDirectory, "Resources\\versions.txt");
         private static readonly string versionFilePathOnline = serverBaseUrl + "versions.txt";
-        private static readonly string settingsDbFilePath = Path.Combine(RootDirectory, "settings.db");
-        private static readonly string[] filesNames = { "language.xml", "descriptions.dict", "standardKeys.db" };
+        private static readonly string tokenFilePath = Path.Combine(RootDirectory, "Resources\\versions.txt");
+        private static readonly string tokenFilePathOnline = serverBaseUrl + "token.cod";
+        private static readonly string[] filesNames = { "language.xml", "descriptions.dict", "standardKeys.db", "token.cod" };
         private static readonly Dictionary<string, string[]> namesPathsDict = new Dictionary<string, string[]>()
         {
             {"language.xml", new string[] { fileScratchPathOnline, fileScratchPath } },
             {"descriptions.dict", new string[] { dictFilePathOnline, dictFilePath } },
-            {"standardKeys.db", new string[] { defaultKeysFilePathOnline, defaultKeysFilePath } }
+            {"standardKeys.db", new string[] { defaultKeysFilePathOnline, defaultKeysFilePath } },
+            {"token.cod", new string[] { tokenFilePathOnline, tokenFilePath } }
         };
+        private const string closedlistPath = "http://84.200.85.34/getClosedlist.php";
+        private const string underdevPath = "http://84.200.85.34/getUnderdev.php";
+        private const string wikiPageUrl = "https://github.com/Olfi01/WuffPad/wiki";
         private bool fileIsOpen = false;
         private bool textHasChanged = false;
         private bool itemIsOpen = false;
@@ -71,11 +82,11 @@ namespace XML_Editor_WuffPad
         private const int clickedValues = 1;
         private List<string> commentLines = new List<string>();
         private bool fromTextBox = false;
+        private string token = "";
 #endregion
         public MainWindow()
         {
             InitializeComponent();
-            checkSettingsDb();
             try { fetchNewestFiles(); }
             catch /*(Exception e)*/ { /*MessageBox.Show(e.ToString() +e.Message + e.StackTrace);*/ }
             getDictAndDefaultKeys();
@@ -84,7 +95,55 @@ namespace XML_Editor_WuffPad
             updateStatus();
         }
 
-#region Functionable Methods
+        #region Functionable Methods
+        private bool checkValuesCorrect()
+        {
+            bool doSave = true;
+            foreach (XmlString s in loadedFile.Strings)
+            {
+                bool hadIt = true;
+                int parenthCount = 0;
+                do
+                {
+                    if (s.Description.Contains("{" + parenthCount.ToString() + "}"))
+                    {
+                        parenthCount++;
+                    }
+                    else
+                    {
+                        hadIt = false;
+                    }
+                } while (hadIt);
+                if (parenthCount > 0)
+                {
+                    foreach (string str in s.Values)
+                    {
+                        for (int i = 0; i < parenthCount; i++)
+                        {
+                            if (!str.Contains("{" + i + "}"))
+                            {
+                                MessageBoxResult result = MessageBox.Show("A value of " + s.Key +
+                                    " does not contain a {" + i + "}.\n" + 
+                                    "Save anyway? Press cancel to jump there.",
+                                    "Warning", MessageBoxButton.YesNoCancel);
+                                if (result == MessageBoxResult.No)
+                                {
+                                    doSave = false;
+                                }
+                                else if (result == MessageBoxResult.Cancel)
+                                {
+                                    listItemsView.ScrollIntoView(s);
+                                    listItemsView.SelectedItem = s;
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return doSave;
+        }
+
         private void downloadFileByName(string name)
         {
             downloadFile(namesPathsDict[name][0], namesPathsDict[name][1]);
@@ -92,12 +151,12 @@ namespace XML_Editor_WuffPad
 
         private void fetchNewestFiles()
         {
-            bool versionFileExists = File.Exists(versionFilePath);
+            bool versionFileExists = System.IO.File.Exists(versionFilePath);
             List<string[]> version_old = new List<string[]>();
             Dictionary<string, int> version_oldDict = new Dictionary<string, int>();
             if (versionFileExists)
             {
-                foreach (string s in File.ReadAllLines(versionFilePath))
+                foreach (string s in System.IO.File.ReadAllLines(versionFilePath))
                 {
                     string[] strs = s.Split(':');
                     version_old.Add(strs);
@@ -114,10 +173,10 @@ namespace XML_Editor_WuffPad
             {
                 Directory.CreateDirectory(versionFilePathRaw);
             }
-            if (File.Exists(versionFilePath)) File.Delete(versionFilePath);
-            File.Move("version.txt", versionFilePath);
+            if (System.IO.File.Exists(versionFilePath)) System.IO.File.Delete(versionFilePath);
+            System.IO.File.Move("version.txt", versionFilePath);
             List<string[]> version = new List<string[]>();
-            foreach (string s in File.ReadAllLines(versionFilePath))
+            foreach (string s in System.IO.File.ReadAllLines(versionFilePath))
             {
                 string[] strs = s.Split(':');
                 version.Add(strs);
@@ -152,44 +211,28 @@ namespace XML_Editor_WuffPad
             {
                 Directory.CreateDirectory(pathToRaw);
             }
-            if (File.Exists(pathTo)) File.Delete(pathTo);
-            File.Move("temp", pathTo);
+            if (System.IO.File.Exists(pathTo)) System.IO.File.Delete(pathTo);
+            System.IO.File.Move("temp", pathTo);
         }
 
         private void setSetting(string key, bool value)
         {
-            Dictionary<string, bool> dict = JsonConvert.DeserializeObject<Dictionary<string, bool>>(
-                File.ReadAllText(settingsDbFilePath));
-            if (dict.ContainsKey(key))
+            switch (key)
             {
-                dict[key] = value;
+                case "commentWarningDisable":
+                    Settings.Default.doNotShowWarningAgain = value;
+                    break;
             }
-            else
-            {
-                dict.Add(key, value);
-            }
-            File.WriteAllText(settingsDbFilePath, JsonConvert.SerializeObject(dict));
         }
 
         private bool checkSetting(string key)
         {
-            string settingsString = File.ReadAllText(settingsDbFilePath);
-            Dictionary<string, bool> settingsDic = 
-                JsonConvert.DeserializeObject<Dictionary<string, bool>>(settingsString);
-            if (settingsDic.ContainsKey(key))
+            switch (key)
             {
-                return settingsDic[key];
+                case "commentWarningDisable":
+                    return Settings.Default.doNotShowWarningAgain;
             }
-            return false;
-        }
-
-        private void checkSettingsDb()
-        {
-            if (!File.Exists(settingsDbFilePath))
-            {
-                File.WriteAllText(settingsDbFilePath, 
-                    JsonConvert.SerializeObject(new Dictionary<string, bool>()));
-            }
+            throw new Exception("Setting not found");
         }
 
         private string getDefaultMissingKey()
@@ -211,19 +254,23 @@ namespace XML_Editor_WuffPad
 
         private void getDictAndDefaultKeys()
         {
-            if (File.Exists(dictFilePath))
+            if (System.IO.File.Exists(dictFilePath))
             {
-                string input = File.ReadAllText(dictFilePath);
+                string input = System.IO.File.ReadAllText(dictFilePath);
                 descriptionDic = JsonConvert.DeserializeObject<Dictionary<string, string>>(input);
             }
-            if (File.Exists(defaultKeysFilePath))
+            if (System.IO.File.Exists(defaultKeysFilePath))
             {
-                string input = File.ReadAllText(defaultKeysFilePath);
+                string input = System.IO.File.ReadAllText(defaultKeysFilePath);
                 string[] inputs = input.Split('\n');
                 foreach (string s in inputs)
                 {
                     defaultKeysList.Add(s);
                 }
+            }
+            if (System.IO.File.Exists(tokenFilePath))
+            {
+                token = System.IO.File.ReadAllText(tokenFilePath);
             }
         }
 
@@ -289,7 +336,7 @@ namespace XML_Editor_WuffPad
 
         private void loadFile()
         {
-            loadedFile = readXmlString(File.ReadAllText(loadDirectory));
+            loadedFile = readXmlString(System.IO.File.ReadAllText(loadDirectory));
             fileIsOpen = true;
             currentStringsList.Clear();
             foreach (XmlString s in loadedFile.Strings)
@@ -321,6 +368,11 @@ namespace XML_Editor_WuffPad
                     loadedFile.Language.Variant = lpd.LanguageVariant;
                 }
             }
+        }
+
+        private void openFindDialog()
+        {
+            //stuff's gotta be added here
         }
 
 #region Big Delete Method
@@ -358,7 +410,7 @@ namespace XML_Editor_WuffPad
 
 #endregion
 
-#region Status Updating
+        #region Status Updating
         public void updateStatus()
         {
             if (fileIsOpen)
@@ -367,6 +419,7 @@ namespace XML_Editor_WuffPad
                 fileSaveMenuItem.IsEnabled = true;
                 listItemsView.IsEnabled = true;
                 editLanguageMenuItem.IsEnabled = true;
+                fileUploadMenuItem.IsEnabled = true;
             }
             else
             {
@@ -374,6 +427,7 @@ namespace XML_Editor_WuffPad
                 fileSaveMenuItem.IsEnabled = false;
                 listItemsView.IsEnabled = false;
                 editLanguageMenuItem.IsEnabled = false;
+                fileUploadMenuItem.IsEnabled = false;
             }
             if (itemIsOpen)
             {
@@ -397,7 +451,7 @@ namespace XML_Editor_WuffPad
         }
 #endregion
 
-#region File and Xml Methods
+        #region File and Xml Methods
         private void chooseDirectory()
         {
             SaveFileDialog sfd = new SaveFileDialog();
@@ -487,7 +541,7 @@ namespace XML_Editor_WuffPad
             string toWrite = serializeXmlToString();
             try
             {
-                File.WriteAllText(saveDirectory, toWrite, Encoding.UTF8);
+                System.IO.File.WriteAllText(saveDirectory, toWrite, Encoding.UTF8);
             }
             catch (Exception e)
             {
@@ -512,7 +566,7 @@ namespace XML_Editor_WuffPad
             return "No description yet.";
         }
 
-        private void checkForSaved()
+        private bool checkForSaved()
         {
             if (textHasChanged)
             {
@@ -520,22 +574,24 @@ namespace XML_Editor_WuffPad
                 if (result == MessageBoxResult.Yes)
                 {
                     saveXmlFile();
+                    return true;
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
-                    return;
+                    return false;
                 }
             }
+            return true;
         }
 
         private void getFileFromScratch()
         {
-            if (File.Exists(fileScratchPath)) loadedFile = readXmlString(File.ReadAllText(fileScratchPath));
+            if (System.IO.File.Exists(fileScratchPath)) loadedFile = readXmlString(System.IO.File.ReadAllText(fileScratchPath));
             else throw new Exception("Failed to load file");
         }
 #endregion
 
-#region XAML Stuff
+        #region XAML Stuff
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (valueIsOpen && !valueHasChanged)
@@ -571,7 +627,10 @@ namespace XML_Editor_WuffPad
                 MessageBoxResult result = MessageBox.Show("File not saved!\nSave?", "", MessageBoxButton.YesNoCancel);
                 if (result == MessageBoxResult.Yes)
                 {
-                    saveXmlFile();
+                    if (checkValuesCorrect())
+                    {
+                        saveXmlFile();
+                    }
                 }
                 else if(result == MessageBoxResult.Cancel)
                 {
@@ -601,7 +660,10 @@ namespace XML_Editor_WuffPad
             }
             else if(e.Command == ApplicationCommands.Save)
             {
-                saveXmlFile();
+                if (checkValuesCorrect())
+                {
+                    saveXmlFile();
+                }
             }
             else if(e.Command == ApplicationCommands.Close)
             {
@@ -618,6 +680,10 @@ namespace XML_Editor_WuffPad
             else if (e.Command == CustomCommands.LanguageProperties)
             {
                 openLanguageDialog();
+            }
+            else if (e.Command == ApplicationCommands.Find)
+            {
+                openFindDialog();
             }
             else
             {
@@ -702,6 +768,7 @@ namespace XML_Editor_WuffPad
                 {
                     XmlString xs = new XmlString();
                     xs.Key = key;
+                    xs.Description = getDescription(xs.Key);
                     loadedFile.Strings.Add(xs);
                     currentStringsList = loadedFile.Strings;
                     currentString = xs;
@@ -744,13 +811,89 @@ namespace XML_Editor_WuffPad
                 textHasChanged = true;
                 showValues(currentString);
                 showValue(currentValue);
+                valueIsOpen = true;
                 listValuesView.SelectedIndex = currentString.Values.Count - 1;
                 listValuesView.ScrollIntoView(currentString.Values[currentString.Values.Count - 1]);
+                updateStatus();
             }
         }
-#endregion
-        
-#region Display Control
+
+        private void closedlistItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(closedlistPath);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                string closedlist;
+                using (StreamReader sr = new StreamReader(resStream))
+                {
+                    closedlist = sr.ReadToEnd();
+                }
+                ClosedlistWindow cw = new ClosedlistWindow("CURRENT CLOSEDLIST", 
+                    closedlist.Replace(":", ": "));
+                cw.ShowDialog();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to fetch #closedlist.");
+            }
+        }
+
+        private void underdevItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(underdevPath);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                string underdev;
+                using (StreamReader sr = new StreamReader(resStream))
+                {
+                    underdev = sr.ReadToEnd();
+                }
+                ClosedlistWindow cw = new ClosedlistWindow("LANGFILES UNDER DEVELOPMENT",
+                    underdev.Replace(":", ": "));
+                cw.ShowDialog();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to fetch #underdev.");
+            }
+        }
+
+        private void fileUploadMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult res = MessageBox.Show("Upload file?", "Upload", MessageBoxButton.YesNo);
+            if (res == MessageBoxResult.No) return;
+            try
+            {
+                if (checkForSaved())
+                {
+                    TelegramBotClient client = new TelegramBotClient(token);
+                    string[] splitted = saveDirectory.Split('\\');
+                    FileStream fs = System.IO.File.OpenRead(saveDirectory);
+                    FileToSend fts = new FileToSend(splitted[splitted.Length - 1], fs);
+                    Task t = client.SendDocumentAsync(UploadChatId, fts,
+                        "Please forward this message to this chat again, so the other bot can see it.");
+                    t.Wait();
+                    MessageBox.Show("File was sent to translation group. It will be uploaded as soon as an admin"
+                        + " comes across it.");
+                }
+            }
+            catch
+            {
+                MessageBox.Show("An error occurred.");
+            }
+        }
+
+        private void wikiItem_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(wikiPageUrl);
+        }
+        #endregion
+
+        #region Display Control
         private void showValues(XmlString s)
         {
             currentString = s;
@@ -795,7 +938,6 @@ namespace XML_Editor_WuffPad
             valueHasChanged = false;
             return true;
         }
-#endregion
-
+        #endregion
     }
 }

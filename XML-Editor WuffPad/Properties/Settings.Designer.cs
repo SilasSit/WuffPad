@@ -22,5 +22,17 @@ namespace XML_Editor_WuffPad.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool doNotShowWarningAgain {
+            get {
+                return ((bool)(this["doNotShowWarningAgain"]));
+            }
+            set {
+                this["doNotShowWarningAgain"] = value;
+            }
+        }
     }
 }
